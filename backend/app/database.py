@@ -35,19 +35,29 @@ async def veritabani_oturumu_getir():
 
 
 async def tablolari_olustur():
-    async with motor.begin() as baglanti:
+    # Model tablolarını oluştur - Hata alsa bile devam et (Enum kısıtlaması vb. için)
+    async with motor.connect() as baglanti:
+        # 1. Aşama: Temel Tabloları oluştur
         try:
             await baglanti.run_sync(TemelModel.metadata.create_all)
+            await baglanti.commit()
         except Exception as e:
-            # Eğer tip zaten varsa hata verebilir, canlı test için yoksayıyoruz.
-            print(f"[Veritabanı] Uyarı: Tablo oluşturma sırasında hata (muhtemelen tipler zaten var): {e}")
+            # Eğer tip zaten varsa hata verebilir, günlüklerde göster ama devam et.
+            print(f"[Veritabanı] Bilgi: Tablo oluşturma sırasında (beklenen) hata: {e}")
             
-        await baglanti.execute(
-            text(
-                "ALTER TABLE toplanti_katilimcilari "
-                "ADD COLUMN IF NOT EXISTS engellendi BOOLEAN NOT NULL DEFAULT FALSE"
-            )
-        )
+        # 2. Aşama: Manuel sütun ekleme (IF NOT EXISTS destekli)
+        try:
+            async with baglanti.begin():
+                await baglanti.execute(
+                    text(
+                        "ALTER TABLE toplanti_katilimcilari "
+                        "ADD COLUMN IF NOT EXISTS engellendi BOOLEAN NOT NULL DEFAULT FALSE"
+                    )
+                )
+                await baglanti.commit()
+        except Exception as e:
+            print(f"[Veritabanı] ALTER TABLE Hatası (Yoksayılıyor): {e}")
+
 
 
 async def motoru_kapat():

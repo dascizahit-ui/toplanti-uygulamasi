@@ -53,4 +53,8 @@ Thumbs.db
 backend_logs.txt
 alembic_error.txt
 # (Removed coturn config from gitignore to include it in repo)
+*.tar
+*.zip
+*.rar
+*.7z
 
