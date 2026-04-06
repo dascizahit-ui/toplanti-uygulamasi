@@ -1,0 +1,173 @@
+# ============================================
+# TOPLANTI UYGULAMASI - Docker Compose
+# ============================================
+# Tüm servisleri tek komutla başlatır:
+#   docker-compose up -d
+#
+# Mimari:
+#   Frontend (Next.js) :3000
+#   Backend  (FastAPI)  :8000
+#   Mediasoup (SFU)     :4443
+#   PostgreSQL          :5432
+#   Redis               :6379
+#   coturn (TURN/STUN)  :3478
+# ============================================
+
+
+services:
+  # =====================
+  # VERİTABANI
+  # =====================
+  postgres:
+    image: postgres:16-alpine
+    container_name: toplanti_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: toplanti_admin
+      POSTGRES_PASSWORD: guclu_sifre_123
+      POSTGRES_DB: toplanti_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_veri:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U toplanti_admin -d toplanti_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - toplanti_ag
+
+  # =====================
+  # REDIS
+  # =====================
+  redis:
+    image: redis:7-alpine
+    container_name: toplanti_redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_veri:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - toplanti_ag
+
+  # =====================
+  # BACKEND (FastAPI)
+  # =====================
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: toplanti_backend
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      POSTGRES_SUNUCU: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_KULLANICI: toplanti_admin
+      POSTGRES_SIFRE: guclu_sifre_123
+      POSTGRES_DB: toplanti_db
+      VERITABANI_URL: postgresql+asyncpg://toplanti_admin:guclu_sifre_123@postgres:5432/toplanti_db
+      REDIS_SUNUCU: redis
+      REDIS_PORT: 6379
+      REDIS_URL: redis://redis:6379/0
+      JWT_GIZLI_ANAHTAR: docker-ortami-icin-guclu-gizli-anahtar-degistirin
+      ORTAM: gelistirme
+      DEBUG: "true"
+      IZIN_VERILEN_KAYNAKLAR: http://localhost:3000,https://mahmutunmekani.yb.com.tr,http://31.169.72.98:3000
+      MEDIASOUP_WS_PORT: 4443
+      TURN_SUNUCU: "turn:31.169.72.98:3478"
+      TURN_KULLANICI: toplanti_admin
+      TURN_SIFRE: guclu_sifre_123
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - toplanti_ag
+
+  # =====================
+  # FRONTEND (Next.js)
+  # =====================
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: toplanti_frontend
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: https://mahmutunmekani.yb.com.tr/api
+      NEXT_PUBLIC_WS_URL: wss://mahmutunmekani.yb.com.tr/ws
+      NEXT_PUBLIC_APP_ADI: "Toplantı Uygulaması"
+    depends_on:
+      - backend
+    networks:
+      - toplanti_ag
+
+  # =====================
+  # MEDIASOUP (SFU)
+  # =====================
+  mediasoup:
+    build:
+      context: ./mediasoup
+      dockerfile: Dockerfile
+    container_name: toplanti_mediasoup
+    restart: unless-stopped
+    ports:
+      - "4443:4443"
+      - "10000:10000/tcp"
+      - "10000:10000/udp"
+      - "10001-10100:10001-10100/udp"
+    environment:
+      MEDIASOUP_DINLEME_IP: 0.0.0.0
+      MEDIASOUP_DUYURULAN_IP: 31.169.72.98
+      MEDIASOUP_PORT: 4443
+      MEDIASOUP_WORKER_SAYISI: 2
+    networks:
+      - toplanti_ag
+
+  # =====================
+  # TURN/STUN (coturn)
+  # =====================
+  coturn:
+    image: coturn/coturn:latest
+    container_name: toplanti_coturn
+    restart: unless-stopped
+    ports:
+      - "3478:3478/udp"
+      - "3478:3478/tcp"
+      - "5349:5349/udp"
+      - "5349:5349/tcp"
+      - "49152-49252:49152-49252/udp"
+    volumes:
+      - ./coturn/turnserver.conf:/etc/turnserver.conf:ro
+    command: ["-c", "/etc/turnserver.conf"]
+    networks:
+      - toplanti_ag
+
+# =====================
+# VOLUMES
+# =====================
+volumes:
+  postgres_veri:
+    driver: local
+  redis_veri:
+    driver: local
+
+# =====================
+# NETWORKS
+# =====================
+networks:
+  toplanti_ag:
+    driver: bridge
+    name: toplanti_ag
