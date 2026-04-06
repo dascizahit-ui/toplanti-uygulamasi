@@ -1,0 +1,1 @@
+"""Toplantı Uygulaması Backend Paketi."""
