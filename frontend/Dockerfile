@@ -14,8 +14,18 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Build argümanlarını al ve ENV olarak ata (Next.js için zorunlu)
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_WS_URL
+ARG NEXT_PUBLIC_APP_ADI
+
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_WS_URL=$NEXT_PUBLIC_WS_URL
+ENV NEXT_PUBLIC_APP_ADI=$NEXT_PUBLIC_APP_ADI
 ENV NEXT_TELEMETRY_DISABLED=1
+
 RUN npm run build
+
 
 # --- Aşama 3: Üretim ---
 FROM node:20-alpine AS runner
