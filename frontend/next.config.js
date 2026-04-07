@@ -2,16 +2,25 @@
 const nextConfig = {
   reactStrictMode: false,
   output: 'standalone',
-  allowedDevOrigins: [
-    'https://7692-2a02-ff0-3204-4759-75d3-c26c-adb-8d29.ngrok-free.app',
-  ],
+
   async rewrites() {
-    const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL || 'https://toplanti-backend-production.up.railway.app';
-    console.log(`[Next.js Config] Proxy destination: ${backendUrl}`);
+    // Nginx üzerinden Nginx → backend proxy yapıldığı için
+    // bu rewrite sadece local dev ortamında gerekli.
+    // Production'da Nginx /api → backend:8000 yönlendirmesi yapar.
+    const backendUrl =
+      process.env.BACKEND_URL ||
+      'http://toplanti_backend:8000';
+
+    console.log(`[Next.js Config] Proxy: ${backendUrl}`);
+
     return [
       {
         source: '/api/:path*',
         destination: `${backendUrl}/api/:path*`,
+      },
+      {
+        source: '/ws/:path*',
+        destination: `${backendUrl}/ws/:path*`,
       },
     ];
   },

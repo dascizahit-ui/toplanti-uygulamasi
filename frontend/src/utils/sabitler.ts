@@ -5,14 +5,19 @@
  */
 
 // API ve WebSocket URL'leri
-// Tarayıcı tarafında çalışırken mevcut hostname'e göre otomatik ayarlanır.
+// Üretimde mevcut hostname + protokol kullanılır (ws/wss otomatik seçilir).
 const isLocalhost = typeof window !== 'undefined' && window.location.hostname.includes('localhost');
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL || ''; // Hostname'e göre relative path kullan (Next.js proxy)
+// API: production'da relative path kullan (Nginx proxy yapar)
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || '';
 
+// WS: production'da mevcut sayfanın protokolünden türetilir (https → wss, http → ws)
 export const WS_URL = isLocalhost
   ? 'ws://localhost:8000'
-  : (process.env.NEXT_PUBLIC_WS_URL || '');
+  : typeof window !== 'undefined'
+    ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`
+    : (process.env.NEXT_PUBLIC_WS_URL || '');
+
 export const APP_ADI = process.env.NEXT_PUBLIC_APP_ADI || 'yb Toplantı';
 
 // API endpoint'leri

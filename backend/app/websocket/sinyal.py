@@ -21,7 +21,7 @@ router = APIRouter(tags=["WebSocket Sinyal"])
 redis = RedisServisi()
 
 ayarlar = ayarlari_getir()
-MEDIASOUP_URL = getattr(ayarlar, "MEDIASOUP_URL", "http://mediasoup:4443")
+MEDIASOUP_URL = getattr(ayarlar, "MEDIASOUP_URL", None) or "http://toplanti_mediasoup:4443"
 
 
 async def ms_post(endpoint: str, data: dict) -> dict:

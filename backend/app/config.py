@@ -96,8 +96,9 @@ class Ayarlar(BaseSettings):
     # ---------- Mediasoup ----------
     MEDIASOUP_DINLEME_IP: str = "0.0.0.0"
     MEDIASOUP_DUYURULAN_IP: str = "127.0.0.1"
-    MEDIASOUP_PORT: int = 3478
+    MEDIASOUP_PORT: int = 4443
     MEDIASOUP_WS_PORT: int = 4443
+    MEDIASOUP_URL: str = "http://mediasoup:4443"
 
     # ---------- TURN/STUN ----------
     TURN_SUNUCU: str = "turn:localhost:3478"
@@ -116,16 +117,28 @@ class Ayarlar(BaseSettings):
 
     @property
     def ice_sunuculari(self) -> list:
-        """WebRTC ICE sunucularını döndürür (Aşırı Uyumluluk Modu)."""
-        # Pinggy ve güvenlik duvarlarını aşmak için OpenRelay (Relay) sunucusunu zorluyoruz.
-        return [
+        """WebRTC ICE sunucularını döndürür."""
+        sunucular = [
             {"urls": "stun:stun.l.google.com:19302"},
-            {
-                "urls": "turn:openrelay.metered.ca:443?transport=tcp",
-                "username": "openrelayproject",
-                "credential": "openrelayproject"
-            }
+            {"urls": "stun:stun1.l.google.com:19302"},
         ]
+        # Kendi coturn TURN sunucumuz varsa ekle
+        if self.TURN_SUNUCU and self.TURN_KULLANICI and self.TURN_SIFRE:
+            sunucular.append({
+                "urls": [
+                    self.TURN_SUNUCU,
+                    self.TURN_SUNUCU.replace("turn:", "turns:") + "?transport=tcp",
+                ],
+                "username": self.TURN_KULLANICI,
+                "credential": self.TURN_SIFRE,
+            })
+        # Güvenlik ağı: OpenRelay ücretsiz TURN
+        sunucular.append({
+            "urls": "turn:openrelay.metered.ca:443?transport=tcp",
+            "username": "openrelayproject",
+            "credential": "openrelayproject",
+        })
+        return sunucular
 
 
 @lru_cache()

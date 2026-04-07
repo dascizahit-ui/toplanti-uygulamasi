@@ -83,6 +83,7 @@ services:
       DEBUG: "true"
       IZIN_VERILEN_KAYNAKLAR: http://localhost:3000,http://31.169.72.98,http://31.169.72.98:3000,https://mahmutunmekani.yb.com.tr
       MEDIASOUP_WS_PORT: 4443
+      MEDIASOUP_URL: http://toplanti_mediasoup:4443
       TURN_SUNUCU: "turn:31.169.72.98:3478"
       TURN_KULLANICI: toplanti_admin
       TURN_SIFRE: guclu_sifre_123
@@ -130,12 +131,14 @@ services:
     restart: unless-stopped
     ports:
       - "4443:4443"
-      - "10000:10000/tcp"
       - "10000:10000/udp"
-      - "10001-10100:10001-10100/udp"
+      - "10000:10000/tcp"
+      - "40000-40200:40000-40200/udp"
+      - "40000-40200:40000-40200/tcp"
     environment:
       MEDIASOUP_DINLEME_IP: 0.0.0.0
       MEDIASOUP_DUYURULAN_IP: 31.169.72.98
+      MEDIASOUP_ANNOUNCED_IP: 31.169.72.98
       MEDIASOUP_PORT: 4443
       MEDIASOUP_WORKER_SAYISI: 2
     networks:
