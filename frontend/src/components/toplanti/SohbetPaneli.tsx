@@ -40,7 +40,7 @@ export default function SohbetPaneli({ wsMesajGonder }: SohbetPaneliProps) {
 
   return (
     <div className="flex h-full w-full flex-col cam border-y-0 border-r-0">
-      <div className="border-b border-white/5 px-6 py-6">
+      <div className="border-b border-white/5 px-6 py-6 flex-shrink-0">
         <div className="flex items-start justify-between gap-3">
           <div>
             <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">Sohbet</p>
@@ -74,7 +74,7 @@ export default function SohbetPaneli({ wsMesajGonder }: SohbetPaneliProps) {
         )}
       </div>
 
-      <div className="border-t border-white/5 p-3">
+      <div className="border-t border-white/5 p-3 flex-shrink-0">
         <div className="rounded-3xl border border-white/10 bg-white/[0.04] p-2">
           <div className="flex items-end gap-2">
             <input

@@ -219,7 +219,25 @@ export default function Sayfa() {
     if (!transport) { console.error('Send transport yok'); return null; }
 
     try {
-      const producer = await transport.produce({ track, appData: appData || {} });
+      let encodings;
+      if (track.kind === 'video') {
+        if (appData?.type === 'screen') {
+          encodings = [{ maxBitrate: 1500000 }]; // Ekran paylaşımı için sınır (1.5 Mbps)
+        } else {
+          encodings = [
+            { scaleResolutionDownBy: 4, maxBitrate: 100000 },
+            { scaleResolutionDownBy: 2, maxBitrate: 300000 },
+            { scaleResolutionDownBy: 1, maxBitrate: 900000 },
+          ]; // Kamera için simulcast (3 farklı kalite, ağa göre otomatik geçiş)
+        }
+      }
+
+      const producer = await transport.produce({ 
+        track, 
+        encodings,
+        codecOptions: { videoGoogleStartBitrate: 1000 },
+        appData: appData || {} 
+      });
       producersRef.current.set(producer.appData?.type || producer.kind, producer);
       console.log(`[SFU] Produced: ${producer.kind} (${producer.id})`);
       return producer;
