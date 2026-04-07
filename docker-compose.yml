@@ -168,15 +168,18 @@ services:
     container_name: toplanti_nginx
     restart: unless-stopped
     ports:
-      - "80:80"
-      - "443:443"
+    - "80:80"
+    - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    - ./certbot/conf:/etc/letsencrypt
+    - ./certbot/www:/var/www/certbot
     depends_on:
-      - frontend
-      - backend
+    - frontend
+    - backend
     networks:
-      - toplanti_ag
+    - toplanti_ag
+
 
 # =====================
 # VOLUMES
