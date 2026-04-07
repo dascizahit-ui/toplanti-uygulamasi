@@ -62,7 +62,7 @@ function IslemButonu({
       title={title}
       disabled={disabled}
       className={sinifBirlestir(
-        'relative flex h-12 w-12 items-center justify-center rounded-2xl transition-all duration-300 hover:scale-110 active:scale-95',
+        'relative flex h-10 w-10 sm:h-12 sm:w-12 items-center justify-center rounded-2xl transition-all duration-300 hover:scale-110 active:scale-95',
         renk,
         disabled && 'opacity-30 cursor-not-allowed scale-100'
       )}
@@ -150,13 +150,13 @@ export default function KontrolPaneli({
     <>
       <div 
         className={sinifBirlestir(
-          "fixed inset-x-0 bottom-8 z-40 flex justify-center transition-all duration-700 ease-in-out",
+          "fixed inset-x-0 bottom-4 sm:bottom-8 z-40 flex justify-center px-2 transition-all duration-700 ease-in-out",
           gorunur ? "translate-y-0 opacity-100" : "translate-y-20 opacity-0 pointer-events-none"
         )}
       >
-        <div className="cam flex items-center gap-3 rounded-3xl p-3 shadow-2xl border border-white/10">
+        <div className="cam flex items-center gap-2 sm:gap-3 rounded-3xl p-2 sm:p-3 shadow-2xl border border-white/10 max-w-full overflow-x-auto ozel-kaydirma hide-scrollbar">
           {/* Media Group */}
-          <div className="flex items-center gap-2 pr-3 border-r border-white/10">
+          <div className="flex items-center gap-1 sm:gap-2 pr-2 sm:pr-3 border-r border-white/10">
             <IslemButonu
               aktif={mikrofon}
               vurgu={mikrofon ? 'mavi' : 'kirmizi'}
@@ -205,7 +205,7 @@ export default function KontrolPaneli({
           </div>
 
           {/* Social/Interaction Group */}
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 sm:gap-2">
             <IslemButonu
               aktif={panelAcik}
               vurgu="mavi"
@@ -244,7 +244,7 @@ export default function KontrolPaneli({
           </div>
 
           {/* Quick Info & Actions */}
-          <div className="flex items-center gap-3 pl-3 border-l border-white/10">
+          <div className="flex items-center gap-2 sm:gap-3 pl-2 sm:pl-3 border-l border-white/10">
              <button
                onClick={() => {
                  navigator.clipboard.writeText(window.location.href);
@@ -257,10 +257,10 @@ export default function KontrolPaneli({
 
              <button
               onClick={() => setAyrilModalAcik(true)}
-              className="h-10 w-10 flex items-center justify-center rounded-2xl bg-red-500/80 text-white hover:bg-red-500 transition-colors shadow-lg shadow-red-500/20"
+              className="h-10 w-10 sm:h-12 sm:w-12 flex items-center justify-center rounded-2xl bg-red-500/80 text-white hover:bg-red-500 transition-colors shadow-lg shadow-red-500/20 flex-shrink-0"
               title="Ayril"
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
             </button>

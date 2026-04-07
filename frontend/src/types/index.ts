@@ -182,6 +182,7 @@ export interface KatilimciMedya {
   videoStream?: MediaStream | null;
   sesStream?: MediaStream | null;
   ekranStream?: MediaStream | null;
+  ekranSesStream?: MediaStream | null;
 }
 
 export interface ICESunucusu {

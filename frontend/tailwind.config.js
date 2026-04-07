@@ -20,14 +20,14 @@ module.exports = {
           800: '#1e40af',
           900: '#1e3a8a',
         },
-        // Toplantı arayüzü için koyu renkler
+        // Toplantı arayüzü için ultra-premium koyu renkler (Apple/Vercel tarzı)
         toplanti: {
-          bg: '#1a1a2e',
-          panel: '#16213e',
-          kart: '#0f3460',
-          vurgu: '#e94560',
-          metin: '#eaeaea',
-          sessiz: '#6b7280',
+          bg: '#000000',      // Uzay siyahı (saf siyah)
+          panel: '#0A0A0A',   // Panel arka planı (neredeyse siyah)
+          kart: '#111111',    // Kart arka planı (koyu gri)
+          vurgu: '#3b82f6',   // Seçim ve mavi ton vurgular
+          metin: '#FAFAFA',   // Kirik beyaz (göz yormayan netlik)
+          sessiz: '#888888',  // Pasif/silik metinler
         },
       },
       animation: {

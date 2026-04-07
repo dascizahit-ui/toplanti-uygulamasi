@@ -6,6 +6,7 @@ import { useMedyaStore } from '@/store/medyaStore';
 import { useAuthStore } from '@/store/authStore';
 import { basHarfler, avatarRengi, sinifBirlestir } from '@/utils/yardimcilar';
 import { ROL_ETIKETLERI } from '@/utils/sabitler';
+import { useSesSeviyesi } from '@/hooks/useSesSeviyesi';
 
 interface Props {
   tamEkranId: string | null;
@@ -34,11 +35,13 @@ function KartCerceve({
   return (
     <div
       className={sinifBirlestir(
-        'group relative overflow-hidden rounded-[32px] border border-white/5 bg-slate-950/40 shadow-2xl transition-all duration-500 hover:border-white/20',
-        gorunum === 'serit' ? 'h-full aspect-video w-[280px] flex-none md:w-[320px]' : 'h-full w-full aspect-video',
-        tiklanabilirMi ? 'cursor-pointer' : 'cursor-default',
-        sinifAdi,
-        tamEkran && 'fixed inset-4 z-50 !w-auto !h-auto aspect-auto bg-black/95 rounded-[40px]'
+        'group relative overflow-hidden bg-slate-950/40 transition-all duration-500',
+        tamEkran 
+          ? 'h-full w-full rounded-2xl bg-black border border-white/10 shadow-[0_0_50px_rgba(0,0,0,0.5)]' 
+          : 'rounded-[32px] border h-full w-full aspect-video shadow-2xl',
+        gorunum === 'serit' && !tamEkran ? 'w-[280px] flex-none md:w-[320px]' : '',
+        tiklanabilirMi ? 'cursor-pointer hover:border-white/20' : 'cursor-default',
+        sinifAdi
       )}
       onClick={tiklanabilirMi ? tiklama : undefined}
     >
@@ -54,6 +57,7 @@ function StatusOverlays({
   adSoyad,
   sen,
   rol,
+  konusuyor,
 }: {
   mikrofon: boolean;
   kamera: boolean;
@@ -61,6 +65,7 @@ function StatusOverlays({
   adSoyad: string;
   sen?: boolean;
   rol?: string;
+  konusuyor?: boolean;
 }) {
   return (
     <>
@@ -84,10 +89,13 @@ function StatusOverlays({
       </div>
 
       {/* Bottom Name Tag */}
-      <div className="name-tag">
+      <div className={sinifBirlestir(
+        "name-tag transition-all duration-300", 
+        konusuyor ? "ring-2 ring-green-500/50 scale-105" : ""
+      )}>
         <div className={sinifBirlestir(
-          "flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold",
-          mikrofon ? "bg-birincil-500 text-white" : "bg-red-500 text-white"
+          "flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold transition-colors duration-300",
+          mikrofon ? (konusuyor ? "bg-green-500 text-white shadow-[0_0_15px_rgba(34,197,94,0.5)]" : "bg-birincil-500 text-white") : "bg-red-500 text-white"
         )}>
           {mikrofon ? (
             <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -157,7 +165,9 @@ function UzakVideoKarti({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
+  const ekranAudioRef = useRef<HTMLAudioElement>(null);
   const katilimci = useMedyaStore((s) => s.uzakMedyalar.get(peerId));
+  const { konusuyor } = useSesSeviyesi(katilimci?.sesStream);
 
   useEffect(() => {
     const videoElement = videoRef.current;
@@ -186,6 +196,18 @@ function UzakVideoKarti({
     }
   }, [katilimci?.sesStream]);
 
+  useEffect(() => {
+    if (!ekranAudioRef.current) return;
+    if (!katilimci?.ekranSesStream) {
+      ekranAudioRef.current.srcObject = null;
+      return;
+    }
+    if (ekranAudioRef.current.srcObject !== katilimci.ekranSesStream) {
+      ekranAudioRef.current.srcObject = katilimci.ekranSesStream;
+      ekranAudioRef.current.play().catch(() => {});
+    }
+  }, [katilimci?.ekranSesStream]);
+
   if (!katilimci) return null;
 
   return (
@@ -201,11 +223,13 @@ function UzakVideoKarti({
         autoPlay
         playsInline
         className={sinifBirlestir(
-          'h-full w-full object-cover transition-opacity duration-700',
+          'h-full w-full transition-opacity duration-700',
+          tamEkran ? 'object-contain' : 'object-cover',
           !katilimci.medya.kamera ? 'opacity-0 absolute scale-105' : 'opacity-100 scale-100'
         )}
       />
       <audio ref={audioRef} autoPlay playsInline />
+      <audio ref={ekranAudioRef} autoPlay playsInline />
 
       {!katilimci.medya.kamera && (
         <AvatarAlan id={peerId} adSoyad={katilimci.ad_soyad} tamEkran={tamEkran} />
@@ -217,6 +241,7 @@ function UzakVideoKarti({
         dusukBant={katilimci.medya.dusukBantGenisligi}
         adSoyad={katilimci.ad_soyad}
         rol={katilimci.rol}
+        konusuyor={konusuyor}
       />
     </KartCerceve>
   );
@@ -241,6 +266,7 @@ function YerelVideoKarti({
   const mikrofon = useMedyaStore((s) => s.mikrofon);
   const ekranPaylasimi = useMedyaStore((s) => s.ekranPaylasimi);
   const { kullanici } = useAuthStore();
+  const { konusuyor } = useSesSeviyesi(yerelAkim);
 
   useEffect(() => {
     const videoElement = videoRef.current;
@@ -270,7 +296,8 @@ function YerelVideoKarti({
         playsInline
         muted
         className={sinifBirlestir(
-          'h-full w-full object-cover scale-x-[-1] transition-opacity duration-700',
+          'h-full w-full scale-x-[-1] transition-opacity duration-700',
+          tamEkran ? 'object-contain' : 'object-cover',
           !kamera ? 'opacity-0 absolute' : 'opacity-100'
         )}
       />
@@ -288,6 +315,7 @@ function YerelVideoKarti({
         kamera={kamera}
         adSoyad={kullanici?.ad_soyad || 'Siz'}
         sen
+        konusuyor={konusuyor}
       />
     </KartCerceve>
   );
@@ -343,7 +371,8 @@ export default function VideoIzgarasi({
 
   if (gorunum === 'serit') {
     return (
-      <div className="flex h-full min-h-0 items-stretch gap-4 overflow-x-auto overflow-y-hidden px-4 py-3 md:px-6 ozel-kaydirma">
+      <div className="flex h-full min-h-0 md:flex-col lg:flex-col items-stretch gap-4 p-4 md:p-6 overflow-auto ozel-kaydirma">
+        {/* Serit görünümünde eğer scroll olmasını istiyorsak içerik sığmayana kadar dikey uzar */}
         <YerelVideoKarti
           tiklama={() => setTamEkranId(kullanici?.id || null)}
           tamEkran={false}

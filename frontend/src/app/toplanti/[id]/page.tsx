@@ -350,11 +350,11 @@ export default function Sayfa() {
 
         const stream = new MediaStream([consumer.track]);
         
-        // appData ile screen vs camera ayrımı yap
         const appData = producerAppData || data.appData || {};
         const isScreen = appData.type === 'screen';
+        const isScreenAudio = appData.type === 'screen-audio';
         
-        console.log(`[SFU] Consumed: ${data.kind} (${isScreen ? 'screen' : 'cam/mic'}) from ${peerId}`);
+        console.log(`[SFU] Consumed: ${data.kind} (${isScreen ? 'screen' : isScreenAudio ? 'screen-audio' : 'cam/mic'}) from ${peerId}`);
 
         // Store'u güncelle
         useMedyaStore.setState(state => {
@@ -363,16 +363,18 @@ export default function Sayfa() {
             kullanici_id: peerId, ad_soyad: peerData?.ad_soyad || '', kullanici_adi: peerData?.kullanici_adi || '',
             profil_resmi: peerData?.profil_resmi, rol: peerData?.rol || 'katilimci',
             medya: { mikrofon: false, kamera: false, ekranPaylasimi: false },
-            videoStream: null, sesStream: null, ekranStream: null,
+            videoStream: null, sesStream: null, ekranStream: null, ekranSesStream: null
           };
 
           const guncellenmis = {
             ...mevcut,
             ...(isScreen
               ? { ekranStream: stream, medya: { ...mevcut.medya, ekranPaylasimi: true } }
-              : data.kind === 'video'
-                ? { videoStream: stream, medya: { ...mevcut.medya, kamera: true } }
-                : { sesStream: stream, medya: { ...mevcut.medya, mikrofon: true } }
+              : isScreenAudio
+                ? { ekranSesStream: stream }
+                : data.kind === 'video'
+                  ? { videoStream: stream, medya: { ...mevcut.medya, kamera: true } }
+                  : { sesStream: stream, medya: { ...mevcut.medya, mikrofon: true } }
             ),
           };
 
@@ -471,13 +473,21 @@ export default function Sayfa() {
     }
 
     if (s.ekranPaylasimi) {
-      // Ekran producer'ı kapat
+      // Ekran video producer'ı kapat
       const ekranProducer = producersRef.current.get('screen');
       if (ekranProducer) {
         ekranProducer.close();
         gonder('producerKapat', { producerId: ekranProducer.id });
         producersRef.current.delete('screen');
       }
+      // Ekran ses producer'ı kapat
+      const ekranSesProducer = producersRef.current.get('screen-audio');
+      if (ekranSesProducer) {
+        ekranSesProducer.close();
+        gonder('producerKapat', { producerId: ekranSesProducer.id });
+        producersRef.current.delete('screen-audio');
+      }
+      
       s.ekranAkimi?.getTracks().forEach(t => t.stop());
       useMedyaStore.setState({ ekranAkimi: null, ekranPaylasimi: false });
       gonder('ekran_paylasimi_bitti', {});
@@ -485,15 +495,32 @@ export default function Sayfa() {
       try {
         const ekran = await navigator.mediaDevices.getDisplayMedia({ video: true, audio: true });
         const vt = ekran.getVideoTracks()[0];
+        const at = ekran.getAudioTracks()[0]; // Sistem sesi (sekme/ana bilgisayar sesi)
+
+        // Kamerayı otomatik kapat (kullanıcı isterse geri açabilir)
+        if (s.kamera) {
+          kamToggle(); 
+          bildirim.bilgi('Ekran paylaşımı başladığı için kameranız kapatıldı.');
+        }
 
         // Ekran track'ini produce et
         const producer = await produceTrack(vt, { type: 'screen' });
+        
+        let sesProducer: any = null;
+        if (at) {
+           sesProducer = await produceTrack(at, { type: 'screen-audio' });
+        }
 
         vt.onended = () => {
           if (producer) {
             producer.close();
             gonder('producerKapat', { producerId: producer.id });
             producersRef.current.delete('screen');
+          }
+          if (sesProducer) {
+            sesProducer.close();
+            gonder('producerKapat', { producerId: sesProducer.id });
+            producersRef.current.delete('screen-audio');
           }
           ekran.getTracks().forEach(t => t.stop());
           useMedyaStore.setState({ ekranAkimi: null, ekranPaylasimi: false });
@@ -504,7 +531,7 @@ export default function Sayfa() {
         gonder('ekran_paylasimi_basladi', {});
       } catch { bildirim.hata('Ekran paylaşımı iptal'); }
     }
-  }, [aktifKullanici?.id, aktifKullanici?.rol, gonder]);
+  }, [aktifKullanici?.id, aktifKullanici?.rol, gonder, kamToggle]);
 
   const cik = useCallback(() => {
     temizle();
@@ -711,9 +738,19 @@ export default function Sayfa() {
                  ep.close();
                  gonder('producerKapat', { producerId: ep.id });
                  producersRef.current.delete('screen');
+               }
+               const esp = producersRef.current.get('screen-audio');
+               if (esp) {
+                 esp.close();
+                 gonder('producerKapat', { producerId: esp.id });
+                 producersRef.current.delete('screen-audio');
+               }
+               
+               if (ep || esp) {
                  useMedyaStore.getState().ekranAkimi?.getTracks().forEach(t => t.stop());
                  useMedyaStore.setState({ ekranAkimi: null, ekranPaylasimi: false });
                  gonder('ekran_paylasimi_bitti', {});
+                 bildirim.uyari('Ekran paylaşım yetkiniz yönetici tarafından alındı.');
                }
             }
           } else {

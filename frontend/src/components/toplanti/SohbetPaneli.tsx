@@ -89,6 +89,7 @@ export default function SohbetPaneli({ wsMesajGonder }: SohbetPaneliProps) {
             />
             <button
               onClick={mesajGonder}
+              onMouseDown={(e) => e.preventDefault()}
               disabled={!yeniMesaj.trim()}
               className="rounded-2xl bg-birincil-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-birincil-500 disabled:cursor-not-allowed disabled:opacity-40"
             >
