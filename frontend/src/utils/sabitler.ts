@@ -18,7 +18,7 @@ export const WS_URL = isLocalhost
     ? `${window.location.protocol === 'https:' ? 'wss' : 'ws'}://${window.location.host}`
     : (process.env.NEXT_PUBLIC_WS_URL || '');
 
-export const APP_ADI = process.env.NEXT_PUBLIC_APP_ADI || 'yb Toplantı';
+export const APP_ADI = process.env.NEXT_PUBLIC_APP_ADI || 'mahmutun mekanı';
 
 // API endpoint'leri
 export const API_ENDPOINTLERI = {

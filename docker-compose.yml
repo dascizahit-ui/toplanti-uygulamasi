@@ -105,7 +105,7 @@ services:
       args:
         NEXT_PUBLIC_API_URL: https://mahmutunmekani.yb.com.tr
         NEXT_PUBLIC_WS_URL: wss://mahmutunmekani.yb.com.tr
-        NEXT_PUBLIC_APP_ADI: "Toplantı Uygulaması"
+        NEXT_PUBLIC_APP_ADI: "mahmutun mekanı"
     container_name: toplanti_frontend
     restart: unless-stopped
     ports:
@@ -113,7 +113,7 @@ services:
     environment:
       NEXT_PUBLIC_API_URL: https://mahmutunmekani.yb.com.tr
       NEXT_PUBLIC_WS_URL: wss://mahmutunmekani.yb.com.tr
-      NEXT_PUBLIC_APP_ADI: "Toplantı Uygulaması"
+      NEXT_PUBLIC_APP_ADI: "mahmutun mekanı"
 
     depends_on:
       - backend

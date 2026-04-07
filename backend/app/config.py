@@ -132,12 +132,8 @@ class Ayarlar(BaseSettings):
                 "username": self.TURN_KULLANICI,
                 "credential": self.TURN_SIFRE,
             })
-        # Güvenlik ağı: OpenRelay ücretsiz TURN
-        sunucular.append({
-            "urls": "turn:openrelay.metered.ca:443?transport=tcp",
-            "username": "openrelayproject",
-            "credential": "openrelayproject",
-        })
+        
+        # OpenRelay (Canada TURN) tamamen KALDIRILDI. Gecikmeye sebep oluyor.
         return sunucular
 
 

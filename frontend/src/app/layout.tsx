@@ -11,13 +11,13 @@ import '@/styles/globals.css';
 
 export const metadata: Metadata = {
   title: {
-    default: 'yb Toplantı - Güvenli Görüntülü Görüşme',
-    template: '%s | yb Toplantı',
+    default: 'mahmutun mekanı - Güvenli Görüntülü Görüşme',
+    template: '%s | mahmutun mekanı',
   },
   description:
-    'Gerçek zamanlı video konferans ve toplantı uygulaması. ' +
+    'mahmutun mekanı gerçek zamanlı video konferans ve toplantı uygulaması. ' +
     'Güvenli, hızlı ve kullanımı kolay.',
-  keywords: ['toplantı', 'video konferans', 'webrtc', 'çevrimiçi toplantı'],
+  keywords: ['toplantı', 'video konferans', 'webrtc', 'çevrimiçi toplantı', 'mahmutun mekanı'],
 };
 
 export default function KokLayout({
