@@ -1,12 +1,13 @@
 /**
- * Mediasoup Yapılandırması — VPS Üretim
- * =======================================
- * - Sinyal sunucusu: PORT 8080 (http)
- * - WebRtcServer: PORT 10000 (udp+tcp, ayrı port)
- * - MEDIASOUP_ANNOUNCED_IP env zorunlu
+ * Mediasoup Yapılandırması — VPS Üretim (Düzeltildi)
+ * ====================================================
+ * webRtcServerOptions KALDIRILDI → Her worker aynı porta bind edemez!
+ * Bunun yerine transport başına listenIps kullanılıyor.
  */
 
-const ANNOUNCED_IP = process.env.MEDIASOUP_ANNOUNCED_IP || process.env.MEDIASOUP_DUYURULAN_IP || '31.169.72.98';
+const ANNOUNCED_IP = process.env.MEDIASOUP_ANNOUNCED_IP
+  || process.env.MEDIASOUP_DUYURULAN_IP
+  || '31.169.72.98';
 
 module.exports = {
   // ─── Worker ───
@@ -49,37 +50,26 @@ module.exports = {
   },
 
   // ─── Sinyal Sunucusu (HTTP API) ───
-  // Backend bu porta bağlanır: http://mediasoup:4443
   sunucu: {
     port: parseInt(process.env.MEDIASOUP_PORT || '4443'),
     duyurulanIp: ANNOUNCED_IP,
   },
 
-  // ─── WebRtcServer ─── (UDP+TCP medya trafiği)
-  // Sinyal portundan FARKLI bir port kullanılmalı!
-  webRtcServerOptions: {
-    listenInfos: [
+  // webRtcServerOptions: KALDIRILDI
+  // Birden fazla worker aynı porta bind edemez.
+  // Her transport kendi listenIps'ini webRtcTransportSecenekleri'nden alır.
+
+  // ─── WebRTC Transport ─── (per-transport yapılandırma)
+  webRtcTransportSecenekleri: {
+    listenIps: [
       {
-        protocol: 'udp',
         ip: '0.0.0.0',
         announcedIp: ANNOUNCED_IP,
-        port: 10000,
-      },
-      {
-        protocol: 'tcp',
-        ip: '0.0.0.0',
-        announcedIp: ANNOUNCED_IP,
-        port: 10000,
       },
     ],
-  },
-
-  // ─── WebRTC Transport ───
-  webRtcTransportSecenekleri: {
     initialAvailableOutgoingBitrate: 600000,
     minimumAvailableOutgoingBitrate: 100000,
     maxSctpMessageSize: 262144,
-    // UDP birincil, TCP fallback (her ikisi açık)
     enableUdp: true,
     enableTcp: true,
     preferUdp: true,

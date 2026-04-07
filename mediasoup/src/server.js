@@ -49,11 +49,6 @@ async function createWorkers() {
   const num = config.worker.sayisi;
   for (let i = 0; i < num; i++) {
     const worker = await mediasoup.createWorker(config.worker.ayarlar);
-    
-    // WebRtcServer oluştur (Tek port üzerinden çoklama için)
-    if (config.webRtcServerOptions) {
-      worker.appData.webRtcServer = await worker.createWebRtcServer(config.webRtcServerOptions);
-    }
 
     worker.on('died', () => {
       console.error(`Worker ${worker.pid} öldü!`);
@@ -174,8 +169,7 @@ app.post('/api/transport/olustur', async (req, res) => {
     if (!peer) return res.status(404).json({ hata: 'Peer yok' });
     
     const transport = await room.router.createWebRtcTransport({
-      ...config.webRtcTransportSecenekleri, 
-      webRtcServer: room.worker.appData.webRtcServer,
+      ...config.webRtcTransportSecenekleri,
       appData: { direction, peerId: peer_id }
     });
     
