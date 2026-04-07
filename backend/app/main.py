@@ -61,7 +61,7 @@ def uygulama_olustur() -> FastAPI:
     app.add_middleware(
         CORSMiddleware,
         allow_origins=ayarlar.cors_kaynaklari,
-        allow_origin_regex=r"https?://(localhost|127\.0\.0\.1|31\.169\.72\.98|192\.168\.\d+\.\d+|.*\.ngrok-free\.app|.*\.up\.railway\.app)(:\d+)?",
+        allow_origin_regex=r"https?://(localhost|127\.0\.0\.1|31\.169\.72\.98|mahmutunmekani\.yb\.com\.tr|192\.168\.\d+\.\d+|.*\.ngrok-free\.app|.*\.up\.railway\.app)(:\d+)?",
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
